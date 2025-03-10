@@ -63,7 +63,6 @@ namespace GroundSystems.Client.Services.Network
             {
 
 
-                // JSON serialize
                 string jsonData = JsonSerializer.Serialize(sensorData);
                 byte[] dataBytes = Encoding.UTF8.GetBytes(jsonData);
 

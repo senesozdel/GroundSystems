@@ -20,7 +20,7 @@ using GroundSystems.Server.Models.Entities;
             private readonly ISensorSimulatorService _simulatorService;
             private readonly INetworkService _networkService;
             private readonly ILogger<SensorSimulationJob> _logger;
-            private List<Sensor> _sensors; // Sensörleri sınıf seviyesinde tutuyoruz
+            private List<Sensor> _sensors; 
             private readonly Random _random = new Random();
             private readonly ISensorRangeService _sensorRangeService;
             private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
@@ -83,14 +83,12 @@ using GroundSystems.Server.Models.Entities;
                 double newValue = GenerateRandomValueForSensorType(sensor.Type);
                 sensor.CurrentValue = Math.Round(newValue, 2);
 
-                // Sensör durumunu değere göre belirle
                 try
                 {
                     sensor.Status = _sensorRangeService.CheckStatus(sensor.Type, sensor.CurrentValue);
                 }
                 catch (KeyNotFoundException)
                 {
-                    // Eğer sensör tipi için limit tanımlanmamışsa rastgele bir durum ata
                     var statusValues = Enum.GetValues(typeof(SensorStatus));
                     sensor.Status = (SensorStatus)statusValues.GetValue(_random.Next(statusValues.Length));
                 }
@@ -114,7 +112,6 @@ using GroundSystems.Server.Models.Entities;
                         return _random.NextDouble() * 50; // 0-50 birim
 
                     default:
-                        // Diğer sensör tipleri için genel bir değer aralığı
                         return _random.NextDouble() * 1000;
                 }
             }
@@ -132,12 +129,10 @@ using GroundSystems.Server.Models.Entities;
 
             public IReadOnlyList<Sensor> GetSensors() => _sensors?.AsReadOnly();
 
-            // Manuel sensör güncelleme ve gönderme için metot ekleyin
             public async Task UpdateAndSendSensorAsync(Sensor sensor, double? newValue = null)
             {
                 if (newValue.HasValue)
                 {
-                    // Manuel değer ile güncelleme
                     double oldValue = sensor.CurrentValue;
                     sensor.CurrentValue = newValue.Value;
 
@@ -147,14 +142,12 @@ using GroundSystems.Server.Models.Entities;
                     }
                     catch (KeyNotFoundException)
                     {
-                        // Eğer sensör tipi için limit tanımlanmamışsa rastgele bir durum ata
                         var statusValues = Enum.GetValues(typeof(SensorStatus));
                         sensor.Status = (SensorStatus)_random.Next(statusValues.Length);
                     }
                 }
                 else
                 {
-                    // Rastgele değer ile güncelleme
                     UpdateSensor(sensor);
                 }
 

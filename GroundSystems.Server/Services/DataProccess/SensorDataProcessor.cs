@@ -36,7 +36,6 @@ namespace GroundSystems.Server.Services
         {
             try
             {
-                // JSON verisini deserialize et
                 var sensorData = JsonConvert.DeserializeObject<Sensor>(jsonData);
 
                 if (sensorData == null)
@@ -47,33 +46,28 @@ namespace GroundSystems.Server.Services
 
                 _logService.LogSensorEventAsync(sensorData.Id, $"Sensor Adı {sensorData.Name}, Sensor Tipi {sensorData.Type}, Değer {sensorData.CurrentValue} , Durum {sensorData.Status} ", LogLevel.Information);
 
-                // Veritabanında sensör var mı kontrol et
                 var existingSensor = await _sensorService.GetSensorByIdAsync(sensorData.Id);
 
-                Sensor updatedSensor; // Event için kullanılacak sensör
+                Sensor updatedSensor; 
 
                 if (existingSensor == null)
                 {
-                    // Yeni sensör ekleme
                     await _sensorService.AddSensorAsync(sensorData);
-                    updatedSensor = sensorData; // Yeni sensörü kullan
+                    updatedSensor = sensorData; 
                 }
                 else
                 {
-                    // Mevcut sensörü güncelle
                     existingSensor.Status = sensorData.Status;
                     existingSensor.Timestamp = DateTime.Now;
 
-                    // Gelen veriden diğer değerleri de güncelle
                     existingSensor.CurrentValue = sensorData.CurrentValue;
                     existingSensor.Name = sensorData.Name ?? existingSensor.Name;
 
 
                     await _sensorService.UpdateSensorAsync(existingSensor);
-                    updatedSensor = existingSensor; // Güncellenmiş sensörü kullan
+                    updatedSensor = existingSensor; 
                 }
 
-                // Event'i her durumda doğru sensör ile tetikle
                 if (updatedSensor != null)
                 {
                     SensorUpdated?.Invoke(this, updatedSensor);

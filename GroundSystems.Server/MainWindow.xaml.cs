@@ -76,10 +76,8 @@ namespace GroundSystems.Server
             _sensorProcessor = sensorProcessor;
             _sensorService = sensorService;
 
-            // Sensör güncellendi event'ini dinle
             _sensorProcessor.SensorUpdated += SensorProcessor_SensorUpdated;
 
-            // Ağ servisinden DataReceived olayını dinle
             _networkService.DataReceived += NetworkService_DataReceived;
         }
 
@@ -88,10 +86,8 @@ namespace GroundSystems.Server
             await _logService.LogApplicationEventAsync("MainViewModel", "Application started", LogLevel.Information);
             AddLogMessage("Application started");
 
-            // Veritabanından sensörleri yükle
             await LoadSensorsFromDatabaseAsync();
 
-            // Ağ dinlemeyi başlat
             await StartNetworkListeningAsync();
 
             InitializeConnectionCheckTimer();
@@ -101,7 +97,7 @@ namespace GroundSystems.Server
         {
             _connectionCheckTimer = new System.Windows.Threading.DispatcherTimer();
             _connectionCheckTimer.Tick += ConnectionCheckTimer_Tick;
-            _connectionCheckTimer.Interval = TimeSpan.FromSeconds(1); // Her saniye kontrol et
+            _connectionCheckTimer.Interval = TimeSpan.FromSeconds(1); 
             _connectionCheckTimer.Start();
 
             AddLogMessage("Sensör bağlantı kontrol mekanizması başlatıldı");
@@ -114,31 +110,25 @@ namespace GroundSystems.Server
 
             foreach (var sensor in Sensors)
             {
-                // Eğer son güncellenme zamanından bu yana 5 saniyeden fazla geçtiyse
-                // ve sensör zaten Offline değilse, durumu Offline olarak güncelle
+         
                 if ((currentTime - sensor.Timestamp).TotalSeconds > 5 && sensor.Status != SensorStatus.Offline)
                 {
                     sensor.Status = SensorStatus.Offline;
                     anyStatusChanged = true;
 
-                    // Log mesajı oluştur
                     string message = $"5 saniye veri gelmedi, durumu İnaktif olarak değiştirildi";
 
-                    // UI loguna ekle
                     AddLogMessage($"[{DateTime.Now:HH:mm:ss}] Sensör {sensor.Id} - {message}");
 
-                    // Sensörün kendi log dosyasına yaz
                     await _logService.LogSensorEventAsync(
                         sensor.Id,
                         message,
                         LogLevel.Warning);
 
-                    // Sensörü veritabanında güncelle
                     await _sensorService.UpdateSensorAsync(sensor);
                 }
             }
 
-            // Herhangi bir sensörün durumu değiştiyse Property'yi güncelle
             if (anyStatusChanged)
             {
                 OnPropertyChanged(nameof(Sensors));

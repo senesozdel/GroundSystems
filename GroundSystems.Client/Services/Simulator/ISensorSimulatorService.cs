@@ -10,7 +10,6 @@ namespace GroundSystems.Client.Services.Simulator
 {
     public interface ISensorSimulatorService
     {
-
         Task<List<Sensor>> CreateSensors(SensorSimulationConfig config);
     }
 }
